@@ -2027,7 +2027,7 @@
   resolved "https://registry.yarnpkg.com/@dhis2/ui-icons/-/ui-icons-8.4.1.tgz#8dceac841a2cbc66975e57f93378d14ff041f88e"
   integrity sha512-82YRN56sgAeS/MuGCUbp3vMo/Lu3UtkqvXBCRN80ZDUYgOEYwTxhJ1qQ/auojOlMU0rg40B6GZMFZA/cVlW25w==
 
-"@dhis2/ui@^8.0.0":
+"@dhis2/ui@^8.0.0", "@dhis2/ui@^8.4.1":
   version "8.4.1"
   resolved "https://registry.yarnpkg.com/@dhis2/ui/-/ui-8.4.1.tgz#3fa1f8cda387170c86c483cc28d7106b593f4b5d"
   integrity sha512-fxetkAnpSe91A8b+e7D4bPcQuIQdLB/9NboUoiOuSJgCQI3HApCVlpsET4iMK5gEHAt2GxwpnoQCNKuKn2ymRg==
@@ -2146,6 +2146,11 @@
     qs "^6.9.0"
     react "^16.12.0"
     yargs "^14.0.0"
+
+"@faker-js/faker@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@faker-js/faker/-/faker-7.1.0.tgz#019eeb2c20030e475a1bd05df1cc7b7e72c039d5"
+  integrity sha512-G+EvE29QUd9/6GTrwA/TK2AiN79W4ZG6kyJqj2RAqUqEd8A8ICnjA3Rj3F2IaaA+sq6WJzs4lh8GJJRDG1UH7A==
 
 "@gar/promisify@^1.0.1":
   version "1.1.3"
@@ -2911,6 +2916,18 @@
   dependencies:
     "@babel/runtime" "^7.16.7"
     history "^5.2.0"
+
+"@tanstack/react-table@^8.0.0-beta.3":
+  version "8.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.0.0-beta.3.tgz#5ff599def573424a9cd3344f3ac75776d96a8f10"
+  integrity sha512-et7kWHslZ4CDFCY4wHCluTu6aiISYv4/9/C+1O/E4R6O4By5w0sCutDKJg71GR9XBy0wWLLjTnmoz0svZx+TUA==
+  dependencies:
+    "@tanstack/table-core" "8.0.0-beta.3"
+
+"@tanstack/table-core@8.0.0-beta.3":
+  version "8.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.0.0-beta.3.tgz#c5bacfe89fb2c8c014595933ee97e2b017f99915"
+  integrity sha512-ejAiBnQG7a4xKxyYWRYOvnOYwLZzKItJC+2Kb+Y+QMiDKqDZadOGanm5o5jt/jn7uk6dawZrCW3gHVce/wrRKQ==
 
 "@testing-library/dom@^8.0.0":
   version "8.13.0"
@@ -6233,6 +6250,16 @@ detect-port@^1.3.0:
   dependencies:
     address "^1.0.1"
     debug "^2.6.0"
+
+dexie-react-hooks@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/dexie-react-hooks/-/dexie-react-hooks-1.1.1.tgz#ff405cc89e5d899ddbac5e40d593f83f9a74106a"
+  integrity sha512-Cam5JP6PxHN564RvWEoe8cqLhosW0O4CAZ9XEVYeGHJBa6KEJlOpd9CUpV3kmU9dm2MrW97/lk7qkf1xpij7gA==
+
+dexie@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.2.2.tgz#fa6f2a3c0d6ed0766f8d97a03720056f88fe0e01"
+  integrity sha512-q5dC3HPmir2DERlX+toCBbHQXW5MsyrFqPFcovkH9N2S/UW/H3H5AWAB6iEOExeraAu+j+zRDG+zg/D7YhH0qg==
 
 diff-sequences@^26.6.2:
   version "26.6.2"
