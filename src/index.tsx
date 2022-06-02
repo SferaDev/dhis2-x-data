@@ -6,9 +6,10 @@ import { ReactQueryDevtools } from "react-query/devtools";
 import styled from "styled-components";
 import { Sidebar, SidebarItem } from "./components/sidebar/Sidebar";
 import { AppContextProvider } from "./hooks/useAppContext";
-import { Export } from "./pages/export/Export";
 import { FakeData } from "./pages/fake-data";
 import { Home } from "./pages/home";
+import { MetadataEdit } from "./pages/metadata-edit/MetadataEdit";
+import { MetadataExport } from "./pages/metadata-export/MetadataExport";
 
 const location = new ReactLocation();
 const queryClient = new QueryClient();
@@ -22,7 +23,9 @@ const App = () => {
                 <AppContextProvider baseUrl={baseUrl}>
                     <Grid>
                         <Sidebar items={sidebarItems} />
-                        <Outlet />
+                        <Overflow>
+                            <Outlet />
+                        </Overflow>
                     </Grid>
                 </AppContextProvider>
             </QueryClientProvider>
@@ -39,12 +42,17 @@ const Grid = styled.div`
     height: 100vh;
 `;
 
+const Overflow = styled.div`
+    overflow: auto;
+`;
+
 export default App;
 
 const routes: Route[] = [
     { path: "/", element: <Home /> },
-    { path: "/fake-data", element: <FakeData /> },
-    { path: "/export", element: <Export /> },
+    { path: "/metadata-edit", element: <MetadataEdit /> },
+    { path: "/metadata/export", element: <MetadataExport /> },
+    { path: "/utils/fake", element: <FakeData /> },
 ];
 
 const sidebarItems: SidebarItem[] = [
@@ -52,11 +60,14 @@ const sidebarItems: SidebarItem[] = [
     {
         type: "group",
         label: "Metadata",
-        items: [{ type: "item", label: "Export", route: "/export" }],
+        items: [
+            { type: "item", label: "Edit", route: "/metadata/edit" },
+            { type: "item", label: "Export", route: "/metadata/export" },
+        ],
     },
     {
         type: "group",
         label: "Utilities",
-        items: [{ type: "item", label: "Fake data", icon: "home", route: "/fake-data" }],
+        items: [{ type: "item", label: "Fake data", icon: "home", route: "/utils/fake" }],
     },
 ];

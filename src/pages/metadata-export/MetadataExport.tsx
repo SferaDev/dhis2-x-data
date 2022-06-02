@@ -50,8 +50,8 @@ const columns = [
     }),
 ];
 
-export const Export = () => {
-    const friends = useLiveQuery(() => db.list.toArray());
+export const MetadataExport = () => {
+    const friends = useLiveQuery(() => db.list.limit(100).toArray());
 
     const metadataTable = useTableInstance(metadata, {
         data: friends ?? [],
