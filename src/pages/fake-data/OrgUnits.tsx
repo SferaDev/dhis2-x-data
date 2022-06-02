@@ -5,9 +5,11 @@ import i18n from "../../locales";
 import { useState } from "react";
 import { useAppContext } from "../../hooks/useAppContext";
 import { OrgUnitTree } from "../../components/org-unit-tree/OrgUnitTree";
+import { useGetRoots } from "../../services/api";
 
 export const OrgUnitsTab = () => {
-    const { worker, roots } = useAppContext();
+    const { worker } = useAppContext();
+    const { data: roots = [] } = useGetRoots();
 
     const [size, setSize] = useState(100);
     const [maxLevel, setMaxLevel] = useState(3);
@@ -17,8 +19,6 @@ export const OrgUnitsTab = () => {
         const parentId = parent?.split("/").pop();
         worker.postMessage({ action: "fake-data", type: "orgUnits", size, maxLevel, parent: parentId });
     };
-
-    console.log(roots);
 
     return (
         <Container>

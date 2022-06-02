@@ -6,7 +6,6 @@ import { D2Api, getD2APiFromInstance } from "../types/d2-api";
 export interface AppContextState {
     api: D2Api;
     worker: Worker<WorkerInputData, WorkerOutputData>;
-    roots: { id: string; name: string; path: string }[];
 }
 
 export const AppContext = React.createContext<AppContextState | null>(null);
@@ -22,7 +21,7 @@ export function useAppContext() {
 
 export const AppContextProvider: React.FC<{ baseUrl: string; children: React.ReactNode }> = ({ children, baseUrl }) => {
     const [initialized, setInitialized] = useState(false);
-    const [value, setValue] = useState<AppContextState>(() => ({
+    const [value] = useState<AppContextState>(() => ({
         api: getD2APiFromInstance({ url: baseUrl }),
         worker: new Worker(),
         roots: [],
@@ -33,14 +32,6 @@ export const AppContextProvider: React.FC<{ baseUrl: string; children: React.Rea
         value.worker.postMessage({ action: "init", url: baseUrl });
         setInitialized(true);
     }, [value, initialized]);
-
-    useEffect(() => {
-        const api = getD2APiFromInstance({ url: baseUrl });
-        api.models.organisationUnits
-            .get({ filter: { level: { eq: "1" } }, fields: { id: true, name: true, path: true } })
-            .getData()
-            .then(({ objects }) => setValue(value => ({ ...value, roots: objects })));
-    }, [baseUrl]);
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
