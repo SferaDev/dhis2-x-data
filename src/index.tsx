@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 import styled from "styled-components";
 import { Sidebar, SidebarItem } from "./components/sidebar/Sidebar";
 import { AppContextProvider } from "./hooks/useAppContext";
+import { Export } from "./pages/export/Export";
 import { FakeData } from "./pages/fake-data";
 import { Home } from "./pages/home";
 
@@ -43,10 +44,16 @@ export default App;
 const routes: Route[] = [
     { path: "/", element: <Home /> },
     { path: "/fake-data", element: <FakeData /> },
+    { path: "/export", element: <Export /> },
 ];
 
 const sidebarItems: SidebarItem[] = [
     { type: "item", label: "Home", icon: "home", route: "/" },
+    {
+        type: "group",
+        label: "Metadata",
+        items: [{ type: "item", label: "Export", route: "/export" }],
+    },
     {
         type: "group",
         label: "Utilities",
