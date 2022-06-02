@@ -1,10 +1,10 @@
 // @ts-ignore
-import { InputField, Button, OrganisationUnitTree } from "@dhis2/ui";
-import styled from "styled-components";
-import i18n from "../../locales";
+import { Button, InputField } from "@dhis2/ui";
 import { useState } from "react";
-import { useAppContext } from "../../hooks/useAppContext";
+import styled from "styled-components";
 import { OrgUnitTree } from "../../components/org-unit-tree/OrgUnitTree";
+import { useAppContext } from "../../hooks/useAppContext";
+import i18n from "../../locales";
 import { useGetRoots } from "../../services/api";
 
 export const OrgUnitsTab = () => {

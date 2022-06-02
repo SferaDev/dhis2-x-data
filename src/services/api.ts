@@ -5,7 +5,6 @@ export function useGetRoots() {
     const { api } = useAppContext();
 
     return useQuery("org-unit-roots", async () => {
-        console.log("getRoots");
         const { objects } = await api.models.organisationUnits
             .get({ filter: { level: { eq: "1" } }, fields: { id: true, name: true, path: true } })
             .getData();

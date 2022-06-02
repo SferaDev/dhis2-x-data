@@ -18,7 +18,11 @@ export const FakeData = () => {
 
             <Tabs selected={selectedTab} onChange={setSelectedTab} tabs={tabs} />
 
-            <Content tab={selectedTab} />
+            {tabs.map(tab => (
+                <Section visible={tab.value === selectedTab}>
+                    <Content tab={tab.value} />
+                </Section>
+            ))}
         </Container>
     );
 };
@@ -38,4 +42,8 @@ const Container = styled.div`
 
 const Title = styled.h1`
     margin: 15px;
+`;
+
+const Section = styled.div<{ visible: boolean }>`
+    display: ${({ visible }) => (visible ? "inherit" : "none")};
 `;
