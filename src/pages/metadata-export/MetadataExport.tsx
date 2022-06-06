@@ -1,22 +1,31 @@
 //@ts-ignore
-import { IconDelete24 } from "@dhis2/ui";
+import { IconDelete24, SegmentedControl } from "@dhis2/ui";
 import styled from "@emotion/styled";
+import { ShareUpdate, Sharing, SharingRule } from "@eyeseetea/d2-ui-components";
 import MaterialTable from "@material-table/core";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
 import _ from "lodash";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Page, Title } from "../../components/page/Page";
 import { Section } from "../../components/section/Section";
 import { useAppContext } from "../../hooks/useAppContext";
 import i18n from "../../locales";
 import { Database } from "../../services/db";
+import { SharingSetting } from "../../services/entities/SharedObject";
+import { SharingUpdate } from "../../services/entities/SharingUpdate";
 import { generateUid } from "../../services/fake-data/uid";
 
 const db = new Database();
 
 export const MetadataExport = () => {
     const { api, worker } = useAppContext();
+    const [builder, updateBuilder] = useState<SharingUpdate>({
+        baseElements: [],
+        excludedDependencies: [],
+        replaceExistingSharings: false,
+        sharings: { publicAccess: "--------", userAccesses: [], userGroupAccesses: [] },
+    });
     const [exportId] = useState(generateUid());
     const [query, setQuery] = useState<{ page?: number; size?: number; search?: string }>({});
     const [dependencies, setDependencies] = useState<string[]>([]);
@@ -55,6 +64,45 @@ export const MetadataExport = () => {
             type: api.models[item.type].schema.displayName,
         }));
     }, [dependencies, dependencySearch]);
+
+    const strategyName = builder.replaceExistingSharings ? i18n.t("Replace") : i18n.t("Merge");
+    const label = `${i18n.t("Update strategy")}: ${strategyName}`;
+
+    const search = useCallback(
+        (query: string) => {
+            const options = {
+                fields: { id: true, displayName: true },
+                filter: { displayName: { ilike: query } },
+            };
+
+            return api.metadata.get({ users: options, userGroups: options }).getData();
+        },
+        [api]
+    );
+
+    const setModuleSharing = useCallback(
+        async ({ publicAccess, userAccesses, userGroupAccesses }: ShareUpdate) => {
+            updateBuilder(builder => ({
+                ...builder,
+                sharings: {
+                    publicAccess: publicAccess ?? builder.sharings.publicAccess,
+                    userAccesses: mapSharingSettings(userAccesses) ?? builder.sharings.userAccesses,
+                    userGroupAccesses: mapSharingSettings(userGroupAccesses) ?? builder.sharings.userGroupAccesses,
+                },
+            }));
+        },
+        [updateBuilder]
+    );
+
+    const setReplaceStragegy = useCallback(
+        (_event: React.ChangeEvent<HTMLInputElement>, replaceExistingSharings: boolean) => {
+            updateBuilder(builder => ({
+                ...builder,
+                replaceExistingSharings,
+            }));
+        },
+        [updateBuilder]
+    );
 
     useEffect(() => {
         worker.onmessage = event => {
@@ -137,6 +185,41 @@ export const MetadataExport = () => {
                     />
                 </Wrapper>
             </Section>
+
+            <Section visible={step === 1}>
+                <SegmentedControl
+                    onChange={({ value }: any) =>
+                        updateBuilder(builder => ({ ...builder, replaceExistingSharings: value === "replace" }))
+                    }
+                    options={[
+                        {
+                            label: "Merge",
+                            value: "merge",
+                        },
+                        {
+                            label: "Replace",
+                            value: "replace",
+                        },
+                    ]}
+                    selected={builder.replaceExistingSharings ? "replace" : "merge"}
+                />
+
+                <Sharing
+                    showOptions={showOptions}
+                    onSearch={search}
+                    onChange={setModuleSharing}
+                    meta={{
+                        meta: { allowPublicAccess: true, allowExternalAccess: false },
+                        object: {
+                            id: "meta-object",
+                            displayName: i18n.t("Global sharing settings"),
+                            publicAccess: builder.sharings.publicAccess,
+                            userAccesses: mapSharingRules(builder.sharings.userAccesses),
+                            userGroupAccesses: mapSharingRules(builder.sharings.userGroupAccesses),
+                        },
+                    }}
+                />
+            </Section>
         </Page>
     );
 };
@@ -151,3 +234,23 @@ const Wrapper = styled.div`
 `;
 
 const steps = [i18n.t("Select metadata"), i18n.t("Sharing and access"), i18n.t("Export")];
+
+const mapSharingSettings = (settings?: SharingRule[]): SharingSetting[] | undefined => {
+    return settings?.map(item => {
+        return { id: item.id, access: item.access, name: item.displayName };
+    });
+};
+
+const mapSharingRules = (settings?: SharingSetting[]): SharingRule[] | undefined => {
+    return settings?.map(item => {
+        return { id: item.id, access: item.access, displayName: item.name };
+    });
+};
+
+const showOptions = {
+    title: false,
+    dataSharing: false,
+    publicSharing: true,
+    externalSharing: false,
+    permissionPicker: true,
+};

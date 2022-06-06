@@ -22,8 +22,12 @@
         "@emotion/react": "^11.9.0",
         "@emotion/styled": "^11.8.1",
         "@eyeseetea/d2-api": "^1.12.0",
+        "@eyeseetea/d2-ui-components": "^2.6.11",
         "@faker-js/faker": "^7.1.0",
         "@material-table/core": "^0.2.34",
+        "@material-ui/core": "^4.12.4",
+        "@material-ui/icons": "^4.11.3",
+        "@material-ui/styles": "^4.11.5",
         "@monaco-editor/react": "^4.4.5",
         "@mui/lab": "^5.0.0-alpha.84",
         "@mui/material": "^5.8.2",
@@ -33,15 +37,19 @@
         "@tanstack/react-table": "^8.0.0-beta.3",
         "@xata.io/client": "^0.9.0",
         "@xata.io/codegen": "^0.9.0",
+        "add": "^2.0.6",
         "dexie": "^3.2.2",
         "dexie-react-hooks": "^1.1.1",
+        "fluture": "^14.0.0",
         "lodash": "^4.17.21",
         "monaco-editor": "^0.33.0",
         "monaco-editor-auto-typings": "^0.4.0",
+        "purify-ts": "^1.2.2",
         "react-query": "^3.39.1",
         "react-split-pane": "^0.1.92",
         "rollup-plugin-import-cdn": "^0.2.0",
         "rollup-plugin-virtual-fs": "^4.0.1-alpha.0",
-        "worker-loader": "^3.0.8"
+        "worker-loader": "^3.0.8",
+        "yarn": "^1.22.18"
     }
 }

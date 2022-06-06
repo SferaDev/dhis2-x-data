@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-06-06T17:45:53.697Z\n"
-"PO-Revision-Date: 2022-06-06T17:45:53.697Z\n"
+"POT-Creation-Date: 2022-06-06T18:19:10.466Z\n"
+"PO-Revision-Date: 2022-06-06T18:19:10.466Z\n"
 
 msgid "Number of organisation units"
 msgstr "Number of organisation units"
@@ -32,11 +32,17 @@ msgstr "Metadata Hub"
 msgid "Fake generator"
 msgstr "Fake generator"
 
-msgid "API Playground"
-msgstr "API Playground"
-
 msgid "About xData"
 msgstr "About xData"
+
+msgid "Replace"
+msgstr "Replace"
+
+msgid "Merge"
+msgstr "Merge"
+
+msgid "Update strategy"
+msgstr "Update strategy"
 
 msgid "Metadata selection"
 msgstr "Metadata selection"
@@ -44,14 +50,20 @@ msgstr "Metadata selection"
 msgid "Dependencies"
 msgstr "Dependencies"
 
+msgid "Global sharing settings"
+msgstr "Global sharing settings"
+
 msgid "Select metadata"
 msgstr "Select metadata"
 
 msgid "Sharing and access"
 msgstr "Sharing and access"
 
-msgid "Transform"
-msgstr "Transform"
-
 msgid "Export"
 msgstr "Export"
+
+msgid "Unknown model"
+msgstr "Unknown model"
+
+msgid "Metadata"
+msgstr "Metadata"
