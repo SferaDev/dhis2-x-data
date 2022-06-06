@@ -46,11 +46,11 @@ export const pages: Page[] = [
             },
         ],
     },
-    {
+    /**{
         type: "group",
         label: "About",
         items: [{ type: "item", label: i18n.t("About xData"), icon: "home", route: "/about" }],
-    },
+    },**/
 ];
 
 export const routes = _.compact(

@@ -12,15 +12,7 @@ import {
     MetadataPayload,
     Visualization,
 } from "../entities/MetadataItem";
-
-export interface MetadataRepository {
-    list(options: ListOptions): FutureData<ListMetadataResponse>;
-    getDependencies(ids: string[]): FutureData<MetadataPayload>;
-    save(payload: MetadataPayload): FutureData<ImportResult>;
-    getModelName(model: string): string;
-    isShareable(model: string): boolean;
-    isDataShareable(model: string): boolean;
-}
+import { isValidUid } from "../fake-data/uid";
 
 export interface ListOptions {
     model: MetadataModel;
@@ -41,7 +33,7 @@ export interface Pager {
     total: number;
 }
 
-export class MetadataD2ApiRepository implements MetadataRepository {
+export class MetadataD2ApiRepository {
     constructor(private api: D2Api) {}
 
     public list(options: ListOptions): FutureData<ListMetadataResponse> {
@@ -64,31 +56,6 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         return apiToFuture(this.api.metadata.post(payload)).map(response => buildMetadataImportResult(response));
     }
 
-    public getDependencies(ids: string[]): FutureData<MetadataPayload> {
-        return this.fetchMetadata(ids)
-            .flatMap(payload => {
-                const items = _(payload)
-                    .mapValues((items, key) => {
-                        if (!Array.isArray(items) || !isValidModel(key)) return undefined;
-                        return items.map(item => ({ model: key, id: item.id }));
-                    })
-                    .values()
-                    .flatten()
-                    .compact()
-                    .value();
-
-                return Future.futureMap(items, ({ model, id }) => this.fetchMetadataWithDependencies(model, id));
-            })
-            .flatMap(payloads => {
-                const payload = mergePayloads(payloads);
-                const extraIds = extractExtraDependencies(payload);
-                if (extraIds.length === 0) return Future.success(payload);
-
-                return this.fetchMetadata(extraIds).map(dependencies => mergePayloads([payload, dependencies]));
-            })
-            .map(payload => removeDefaults(payload));
-    }
-
     public getModelName(model: string): string {
         return this.api.models[model as ModelIndex].schema.displayName ?? i18n.t("Unknown model");
     }
@@ -101,12 +68,35 @@ export class MetadataD2ApiRepository implements MetadataRepository {
         return this.api.models[model as ModelIndex].schema.dataShareable ?? false;
     }
 
-    private fetchMetadata(ids: string[]): FutureData<MetadataPayload> {
-        return apiToFuture(this.api.get("/metadata", { filter: `id:in:[${ids.join(",")}]` }));
+    public fetchMetadata(ids: string[]): FutureData<MetadataPayload> {
+        const chunks = _.chunk(ids, 200);
+        return Future.futureMap(chunks, chunk =>
+            apiToFuture(
+                this.api.get("/metadata", {
+                    filter: `id:in:[${chunk.join(",")}]`,
+                    fields: ":owner",
+                    defaults: "EXCLUDE",
+                })
+            )
+        ).map(data => {
+            return _.mergeWith({}, ...data, mergeCustomizer);
+        });
     }
 
-    private fetchMetadataWithDependencies(model: MetadataModel, id: string): FutureData<MetadataPayload> {
-        return apiToFuture<MetadataPayload>(this.api.get(`/${model}/${id}/metadata.json`));
+    public fetchMetadataWithDependencies(
+        input: string[],
+        fetchedItems = new Set<string>()
+    ): FutureData<MetadataPayload> {
+        return this.fetchMetadata(input).flatMap(metadata => {
+            const ids = _.uniq(traverse(metadata, obj => obj.id as string));
+            const newIds = ids.filter(id => isValidUid(id) && !fetchedItems.has(id));
+            if (newIds.length === 0) return Future.success({});
+
+            newIds.forEach(id => fetchedItems.add(id));
+            return this.fetchMetadataWithDependencies(newIds, fetchedItems).map(payload =>
+                _.mergeWith(payload, metadata, mergePayloads, mergeCustomizer)
+            );
+        });
     }
 }
 
@@ -190,3 +180,21 @@ function getClassName(className: string): string | undefined {
 }
 
 type ModelIndex = keyof D2ApiDefinition["schemas"];
+
+function traverse<T>(obj: any, visitor: (obj: Record<string, unknown>) => T): T[] {
+    if (Array.isArray(obj)) {
+        return obj.filter(item => isObject(item)).flatMap(item => traverse(item, visitor));
+    }
+
+    if (isObject(obj)) {
+        return [visitor(obj), ...Object.keys(obj).flatMap(key => traverse(obj[key], visitor))];
+    }
+
+    return [];
+}
+
+function isObject(obj: any): obj is Record<string, unknown> {
+    return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+}
+
+const mergeCustomizer = (obj: any, src: unknown) => (_.isArray(obj) ? obj.concat(src) : src);

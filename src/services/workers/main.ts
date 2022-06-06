@@ -2,21 +2,35 @@ import _ from "lodash";
 import { D2Api, getD2APiFromInstance, Pager } from "../../types/d2-api";
 import { timeout } from "../../utils/lang";
 import { Database } from "../db";
+import { MetadataPayload } from "../entities/MetadataItem";
+import { SharingUpdate } from "../entities/SharingUpdate";
 import { fakeOrgUnits } from "../fake-data";
 import { isValidUid } from "../fake-data/uid";
+import { MetadataD2ApiRepository } from "../metadata/MetadataRepository";
+import { ApplySharings } from "../sharing-settings/ApplySharings";
 
 export type WorkerInputData =
     | { action: "init"; url: string }
     | { action: "fake-data"; type: "orgUnits"; size: number; parent?: string; maxLevel: number }
-    | { action: "export-dependency-gathering"; projectId: string; selection: string[] };
+    | { action: "export-dependency-gathering"; projectId: string; selection: string[] }
+    | { action: "export-build"; projectId: string; builder: SharingUpdate };
 
-export type WorkerOutputData = { action: "export-dependency-list"; projectId: string; dependencies: string[] };
+export type WorkerOutputData =
+    | { action: "export-dependency-list"; projectId: string; dependencies: string[] }
+    | {
+          action: "export-build-result";
+          projectId: string;
+          result: MetadataPayload;
+      };
 
 const sendMessage: (message: WorkerOutputData) => void = postMessage;
 
 let api: D2Api;
 
 onmessage = async (e: MessageEvent<WorkerInputData>) => {
+    const metadataRepo = new MetadataD2ApiRepository(api);
+    const updater = new ApplySharings(metadataRepo);
+
     switch (e.data.action) {
         case "init":
             api = getD2APiFromInstance({ url: e.data.url });
@@ -28,11 +42,17 @@ onmessage = async (e: MessageEvent<WorkerInputData>) => {
             await api.system.waitFor(response.jobType, response.id).getData();
             break;
         case "export-dependency-gathering":
-            const metadata = await apiExport(e.data.selection);
-
-            const fetchedItems = new Set<string>();
-            const ids = await exportDependencies(metadata, fetchedItems);
+            const metadata = await metadataRepo.fetchMetadataWithDependencies(e.data.selection).toPromise();
+            //@ts-ignore
+            const ids = _.values(metadata)
+                .flat()
+                .map(m => m.id);
+            console.log("dependency gathering", metadata, ids);
             sendMessage({ action: "export-dependency-list", projectId: e.data.projectId, dependencies: ids });
+            break;
+        case "export-build":
+            const result = await updater.execute(e.data.builder).toPromise();
+            sendMessage({ action: "export-build-result", projectId: e.data.projectId, result });
             break;
     }
 };
@@ -86,16 +106,12 @@ export const fetchApi = async (
 
 export const init = async () => {
     const models = _.values(api.models).filter(model => model.schema.metadata);
-    console.log("Metadata", api.models);
 
     for (const model of models) {
         let page = 1;
         let pageCount = 1;
 
         while (page <= pageCount) {
-            const pageMessage = pageCount > 1 ? ` (${page} of ${pageCount})` : "";
-            console.debug("Metadata", `Fetching model ${model.schema.collectionName}` + pageMessage);
-
             const { objects, pager = { page, pageCount } } = await fetchApi(model, {
                 page,
                 pageSize,
@@ -112,48 +128,3 @@ export const init = async () => {
         }
     }
 };
-
-function traverse<T>(obj: any, visitor: (obj: Record<string, unknown>) => T): T[] {
-    if (Array.isArray(obj)) {
-        return obj.filter(item => isObject(item)).flatMap(item => traverse(item, visitor));
-    }
-
-    if (isObject(obj)) {
-        return [visitor(obj), ...Object.keys(obj).flatMap(key => traverse(obj[key], visitor))];
-    }
-
-    return [];
-}
-
-async function apiExport(ids: string[]) {
-    const chunks = _.chunk(ids, 200);
-    const data = await Promise.all(
-        chunks.map(chunk =>
-            api
-                .get<Record<string, unknown>>("/metadata", {
-                    filter: `id:in:[${chunk.join(",")}]`,
-                    fields: ":owner",
-                    defaults: "EXCLUDE",
-                })
-                .getData()
-        )
-    );
-
-    const mergeCustomizer = (obj: any, src: unknown) => (_.isArray(obj) ? obj.concat(src) : src);
-    return _.mergeWith({}, ...data, mergeCustomizer);
-}
-
-async function exportDependencies(metadata: Record<string, unknown>, fetchedItems: Set<string>): Promise<string[]> {
-    const ids = _.uniq(traverse(metadata, obj => obj.id as string));
-    const newIds = ids.filter(id => isValidUid(id) && !fetchedItems.has(id));
-    if (newIds.length === 0) return [];
-
-    newIds.forEach(id => fetchedItems.add(id));
-    const dependencies = await apiExport(newIds);
-    const dependenciesIds = await exportDependencies(dependencies, fetchedItems);
-    return _.uniq([...newIds, ...dependenciesIds]);
-}
-
-function isObject(obj: any): obj is Record<string, unknown> {
-    return obj !== null && typeof obj === "object" && !Array.isArray(obj);
-}

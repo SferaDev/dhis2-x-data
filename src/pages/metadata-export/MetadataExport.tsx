@@ -1,20 +1,24 @@
 //@ts-ignore
-import { IconDelete24, SegmentedControl } from "@dhis2/ui";
+import { IconDelete24, SegmentedControl, Button } from "@dhis2/ui";
 import styled from "@emotion/styled";
 import { ShareUpdate, Sharing, SharingRule } from "@eyeseetea/d2-ui-components";
 import MaterialTable from "@material-table/core";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
+import FileSaver from "file-saver";
 import _ from "lodash";
 import { useCallback, useEffect, useState } from "react";
+import ReactJson from "react-json-view";
 import { Page, Title } from "../../components/page/Page";
 import { Section } from "../../components/section/Section";
 import { useAppContext } from "../../hooks/useAppContext";
 import i18n from "../../locales";
 import { Database } from "../../services/db";
+import { MetadataPayload } from "../../services/entities/MetadataItem";
 import { SharingSetting } from "../../services/entities/SharedObject";
 import { SharingUpdate } from "../../services/entities/SharingUpdate";
 import { generateUid } from "../../services/fake-data/uid";
+import { XataClient } from "../../xata";
 
 const db = new Database();
 
@@ -31,6 +35,7 @@ export const MetadataExport = () => {
     const [dependencies, setDependencies] = useState<string[]>([]);
     const [step, setStep] = useState(0);
     const [dependencySearch, setDependencySearch] = useState("");
+    const [output, setOutput] = useState<MetadataPayload>();
 
     const metadataCount = useLiveQuery(() => db.list.count());
     const metadataList = useLiveQuery(async () => {
@@ -65,9 +70,6 @@ export const MetadataExport = () => {
         }));
     }, [dependencies, dependencySearch]);
 
-    const strategyName = builder.replaceExistingSharings ? i18n.t("Replace") : i18n.t("Merge");
-    const label = `${i18n.t("Update strategy")}: ${strategyName}`;
-
     const search = useCallback(
         (query: string) => {
             const options = {
@@ -94,20 +96,13 @@ export const MetadataExport = () => {
         [updateBuilder]
     );
 
-    const setReplaceStragegy = useCallback(
-        (_event: React.ChangeEvent<HTMLInputElement>, replaceExistingSharings: boolean) => {
-            updateBuilder(builder => ({
-                ...builder,
-                replaceExistingSharings,
-            }));
-        },
-        [updateBuilder]
-    );
-
     useEffect(() => {
         worker.onmessage = event => {
             if (event.data.action === "export-dependency-list" && event.data.projectId === exportId) {
+                // @ts-ignore
                 setDependencies(dependencies => [...dependencies, ...event.data.dependencies]);
+            } else if (event.data.action === "export-build-result" && event.data.projectId === exportId) {
+                setOutput(event.data.result);
             }
         };
     }, [worker]);
@@ -133,8 +128,8 @@ export const MetadataExport = () => {
                         page={query?.page ?? 0}
                         onPageChange={(page, size) => setQuery({ page, size })}
                         onSearchChange={search => setQuery(query => ({ ...query, page: 0, search }))}
-                        onSelectionChange={(_selection, row) => {
-                            console.log(row, _selection);
+                        onSelectionChange={(selection, row) => {
+                            updateBuilder(builder => ({ ...builder, baseElements: selection.map(item => item.id) }));
                             if (!row) return;
                             worker.postMessage({
                                 action: "export-dependency-gathering",
@@ -203,7 +198,6 @@ export const MetadataExport = () => {
                     ]}
                     selected={builder.replaceExistingSharings ? "replace" : "merge"}
                 />
-
                 <Sharing
                     showOptions={showOptions}
                     onSearch={search}
@@ -219,6 +213,54 @@ export const MetadataExport = () => {
                         },
                     }}
                 />
+            </Section>
+
+            <Section visible={step === 2}>
+                <div style={{ display: "flex", gap: 20, flexDirection: "column" }}>
+                    <div style={{ display: "flex", gap: 20, width: "100%" }}>
+                        <Button
+                            primary
+                            onClick={() =>
+                                worker.postMessage({
+                                    action: "export-build",
+                                    projectId: exportId,
+                                    builder: { ...builder, baseElements: [...builder.baseElements, ...dependencies] },
+                                })
+                            }
+                        >
+                            {output ? i18n.t("Regenerate package") : i18n.t("Generate package")}
+                        </Button>
+                        {output ? (
+                            <Button
+                                onClick={() => {
+                                    const json = JSON.stringify(output, null, 4);
+                                    const blob = new Blob([json], { type: "application/json" });
+                                    const name = "export";
+                                    FileSaver.saveAs(blob, `${name}.json`);
+                                }}
+                            >
+                                {i18n.t("Download")}
+                            </Button>
+                        ) : null}
+
+                        {output ? (
+                            <Button
+                                onClick={async () => {
+                                    const xata = new XataClient({ apiKey: process.env.REACT_APP_XATA_API_KEY });
+                                    await xata.db.metadata.create({
+                                        id: exportId,
+                                        name: "export",
+                                        data: JSON.stringify(output),
+                                    });
+                                }}
+                            >
+                                {i18n.t("Publish")}
+                            </Button>
+                        ) : null}
+                    </div>
+
+                    {output ? <ReactJson src={output} /> : null}
+                </div>
             </Section>
         </Page>
     );

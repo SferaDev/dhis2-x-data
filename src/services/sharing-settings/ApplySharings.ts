@@ -1,30 +1,30 @@
 import _ from "lodash";
 import { FutureData } from "../entities/Futures";
-import { isValidMetadataItem, MetadataItem, MetadataPayload } from "../entities/MetadataItem";
+import { MetadataItem, MetadataPayload } from "../entities/MetadataItem";
 import { buildAccessString, getAccessFromString, SharedObject, SharingSetting } from "../entities/SharedObject";
 import { SharingUpdate } from "../entities/SharingUpdate";
-import { MetadataRepository } from "../metadata/MetadataRepository";
+import { MetadataD2ApiRepository } from "../metadata/MetadataRepository";
 
-export class ApplySharingSettingsUseCase {
-    constructor(private metadataRepository: MetadataRepository) {}
+export class ApplySharings {
+    constructor(private metadataRepository: MetadataD2ApiRepository) {}
 
     public execute(update: SharingUpdate): FutureData<MetadataPayload> {
         const { baseElements, excludedDependencies, sharings, replaceExistingSharings } = update;
         return this.metadataRepository
-            .getDependencies(baseElements)
+            .fetchMetadata(baseElements)
             .map(payload => this.cleanPayload(payload, excludedDependencies))
             .map(payload => this.sharePayload(payload, sharings, replaceExistingSharings));
     }
 
-    private cleanPayload(payload: Record<string, any[]>, excludedDependencies: string[]): MetadataPayload {
-        return _.mapValues(payload, (items, model) =>
-            items.filter(
-                item =>
-                    isValidMetadataItem(item) &&
-                    !excludedDependencies.includes(item.id) &&
-                    this.metadataRepository.isShareable(model)
-            )
-        );
+    private cleanPayload(
+        { system, ...payload }: Record<string, any[]>,
+        excludedDependencies: string[]
+    ): MetadataPayload {
+        return _.mapValues(payload, items => {
+            return items.filter(item => {
+                return !excludedDependencies.includes(item.id);
+            });
+        });
     }
 
     private sharePayload(payload: MetadataPayload, sharings: SharedObject, replace: boolean): MetadataPayload {
@@ -70,6 +70,6 @@ export class ApplySharingSettingsUseCase {
     }
 }
 
-function joinSharingSettings(base: SharingSetting[], update: SharingSetting[]): SharingSetting[] {
+function joinSharingSettings(base: SharingSetting[] = [], update: SharingSetting[] = []): SharingSetting[] {
     return _.uniqBy([...base, ...update], ({ id }) => id);
 }

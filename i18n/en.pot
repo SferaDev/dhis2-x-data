@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-06-06T18:19:10.466Z\n"
-"PO-Revision-Date: 2022-06-06T18:19:10.466Z\n"
+"POT-Creation-Date: 2022-06-06T19:41:57.491Z\n"
+"PO-Revision-Date: 2022-06-06T19:41:57.491Z\n"
 
 msgid "Number of organisation units"
 msgstr "Number of organisation units"
@@ -35,15 +35,6 @@ msgstr "Fake generator"
 msgid "About xData"
 msgstr "About xData"
 
-msgid "Replace"
-msgstr "Replace"
-
-msgid "Merge"
-msgstr "Merge"
-
-msgid "Update strategy"
-msgstr "Update strategy"
-
 msgid "Metadata selection"
 msgstr "Metadata selection"
 
@@ -52,6 +43,18 @@ msgstr "Dependencies"
 
 msgid "Global sharing settings"
 msgstr "Global sharing settings"
+
+msgid "Regenerate package"
+msgstr "Regenerate package"
+
+msgid "Generate package"
+msgstr "Generate package"
+
+msgid "Download"
+msgstr "Download"
+
+msgid "Publish"
+msgstr "Publish"
 
 msgid "Select metadata"
 msgstr "Select metadata"

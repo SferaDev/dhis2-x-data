@@ -15,7 +15,7 @@ export const FakeData = () => {
 
     return (
         <Page>
-            <Title>Fake data</Title>
+            <Title>Fake generator</Title>
 
             <Tabs selected={selectedTab} onChange={setSelectedTab} tabs={tabs} />
 
