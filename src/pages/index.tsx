@@ -30,7 +30,7 @@ export const pages: Page[] = [
         label: "Metadata",
         items: [
             { type: "item", label: i18n.t("Export metadata"), route: "/metadata/export", element: <MetadataExport /> },
-            { type: "item", label: i18n.t("Metadata Hub"), route: "/metadata/hub" },
+            // { type: "item", label: i18n.t("Metadata Hub"), route: "/metadata/hub" },
         ],
     },
     {

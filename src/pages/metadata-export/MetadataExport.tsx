@@ -243,7 +243,7 @@ export const MetadataExport = () => {
                             </Button>
                         ) : null}
 
-                        {output ? (
+                        {false && output ? (
                             <Button
                                 onClick={async () => {
                                     const xata = new XataClient({ apiKey: process.env.REACT_APP_XATA_API_KEY });
