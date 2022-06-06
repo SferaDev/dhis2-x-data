@@ -43,11 +43,9 @@ onmessage = async (e: MessageEvent<WorkerInputData>) => {
             break;
         case "export-dependency-gathering":
             const metadata = await metadataRepo.fetchMetadataWithDependencies(e.data.selection).toPromise();
-            //@ts-ignore
             const ids = _.values(metadata)
                 .flat()
                 .map(m => m.id);
-            console.log("dependency gathering", metadata, ids);
             sendMessage({ action: "export-dependency-list", projectId: e.data.projectId, dependencies: ids });
             break;
         case "export-build":
@@ -89,7 +87,7 @@ export const fetchApi = async (
             console.error("Metadata", `Invalid credentials`);
             return { objects: [] };
         } else if (e.response?.status === 404) {
-            console.debug("Metadata", `Ignoring model ${model}`);
+            console.debug("Metadata", `Ignoring model ${model.schema.collectionName}`);
             return { objects: [] };
         } else if (retry < retries) {
             console.error(

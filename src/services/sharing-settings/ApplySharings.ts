@@ -35,7 +35,11 @@ export class ApplySharings {
         );
     }
 
-    private updateSharingSettings(item: MetadataItem, sharings: SharedObject, replace: boolean): MetadataItem {
+    private updateSharingSettings(
+        { sharing, createdBy, created, lastUpdated, ...item }: MetadataItem,
+        sharings: SharedObject,
+        replace: boolean
+    ): MetadataItem {
         return {
             ...item,
             publicAccess: sharings.publicAccess,

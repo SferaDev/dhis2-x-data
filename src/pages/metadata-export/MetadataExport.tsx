@@ -3,7 +3,7 @@ import { IconDelete24, SegmentedControl, Button } from "@dhis2/ui";
 import styled from "@emotion/styled";
 import { ShareUpdate, Sharing, SharingRule } from "@eyeseetea/d2-ui-components";
 import MaterialTable from "@material-table/core";
-import { Step, StepLabel, Stepper } from "@mui/material";
+import { IconButton, Step, StepLabel, Stepper } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
 import FileSaver from "file-saver";
 import _ from "lodash";
@@ -43,7 +43,10 @@ export const MetadataExport = () => {
             .orderBy("type")
             .filter(item => {
                 if (!query.search) return true;
-                return item.name.toLowerCase().includes(query.search.toLowerCase());
+                return (
+                    (item.name ?? "").toLowerCase().includes(query.search.toLowerCase()) ||
+                    (item.id ?? "").toLowerCase().includes(query.search.toLowerCase())
+                );
             })
             .toArray();
 
@@ -58,7 +61,9 @@ export const MetadataExport = () => {
         const items = await db.list
             .orderBy("type")
             .filter(item => {
-                const isSearch = item.name.toLowerCase().includes(dependencySearch.toLowerCase());
+                const isSearch =
+                    (item.name ?? "").toLowerCase().includes(dependencySearch.toLowerCase()) ||
+                    (item.id ?? "").toLowerCase().includes(dependencySearch.toLowerCase());
                 return isSearch && dependencies.includes(item.id);
             })
             .toArray();
@@ -100,7 +105,7 @@ export const MetadataExport = () => {
         worker.onmessage = event => {
             if (event.data.action === "export-dependency-list" && event.data.projectId === exportId) {
                 // @ts-ignore
-                setDependencies(dependencies => [...dependencies, ...event.data.dependencies]);
+                setDependencies(dependencies => _.uniq([...dependencies, ...event.data.dependencies]));
             } else if (event.data.action === "export-build-result" && event.data.projectId === exportId) {
                 setOutput(event.data.result);
             }
@@ -145,6 +150,8 @@ export const MetadataExport = () => {
                             showTextRowsSelected: false,
                             showSelectGroupCheckbox: false,
                             maxBodyHeight: "calc(100vh - 310px)",
+                            groupRowSeparator: " ",
+                            groupTitle: () => "",
                         }}
                         columns={[
                             { title: "Type", field: "type", defaultGroupOrder: 0 },
@@ -159,10 +166,25 @@ export const MetadataExport = () => {
                         onSearchChange={search => setDependencySearch(search)}
                         options={{
                             paging: false,
+                            maxBodyHeight: "calc(100vh - 310px)",
+                            groupRowSeparator: " ",
+                            groupTitle: ({ data }) => (
+                                <span>
+                                    <IconButton
+                                        sx={{ cursor: "pointer" }}
+                                        onClick={() => {
+                                            const ids = data.map((item: any) => item.id);
+                                            setDependencies(dependencies => _.difference(dependencies, ids));
+                                        }}
+                                    >
+                                        <IconDelete24 />
+                                    </IconButton>
+                                </span>
+                            ),
                         }}
                         columns={[
                             { title: "Identifier", field: "id" },
-                            { title: "Type", field: "type" },
+                            { title: "Type", field: "type", defaultGroupOrder: 0 },
                             { title: "Name", field: "name" },
                         ]}
                         localization={{

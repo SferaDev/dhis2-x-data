@@ -6,22 +6,23 @@ import { MetadataEdit } from "./metadata-edit/MetadataEdit";
 import { MetadataExport } from "./metadata-export/MetadataExport";
 import { PlaygroundEditor } from "./playground/Playground";
 
-type Item = {
+export type PageItem = {
     type: "item";
     label: string;
+    description?: string;
     icon?: React.ReactNode;
     route: string;
     element?: React.ReactNode;
 };
 
-type Group = {
+export type PageGroup = {
     type: "group";
     label: string;
-    items: Item[];
+    items: PageItem[];
     collapsed?: boolean;
 };
 
-export type Page = Item | Group;
+export type Page = PageItem | PageGroup;
 
 export const pages: Page[] = [
     { type: "item", label: i18n.t("Home"), icon: "home", route: "/", element: <Home /> },
@@ -29,7 +30,15 @@ export const pages: Page[] = [
         type: "group",
         label: "Metadata",
         items: [
-            { type: "item", label: i18n.t("Export metadata"), route: "/metadata/export", element: <MetadataExport /> },
+            {
+                type: "item",
+                label: i18n.t("Export metadata"),
+                description: i18n.t(
+                    "Select metadata pieces, review dependencies, customize sharing settings and export"
+                ),
+                route: "/metadata/export",
+                element: <MetadataExport />,
+            },
             // { type: "item", label: i18n.t("Metadata Hub"), route: "/metadata/hub" },
         ],
     },
@@ -40,6 +49,7 @@ export const pages: Page[] = [
             {
                 type: "item",
                 label: i18n.t("Fake generator"),
+                description: i18n.t("Generate fake metadata (orgUnits) for testing"),
                 icon: "home",
                 route: "/utils/fake",
                 element: <FakeData />,

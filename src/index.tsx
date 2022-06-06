@@ -9,10 +9,11 @@ import { pages, routes } from "./pages";
 
 const App = () => {
     const { baseUrl } = useConfig();
+    const realUrl = process.env.NODE_ENV === "development" ? baseUrl : new URL(baseUrl, window.location.href).href;
 
     return (
         <>
-            <AppContextProvider baseUrl={baseUrl}>
+            <AppContextProvider baseUrl={realUrl}>
                 <RouterProvider>
                     <Grid>
                         <Sidebar items={pages} />

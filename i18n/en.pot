@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-06-06T19:41:57.491Z\n"
-"PO-Revision-Date: 2022-06-06T19:41:57.491Z\n"
+"POT-Creation-Date: 2022-06-06T20:21:36.841Z\n"
+"PO-Revision-Date: 2022-06-06T20:21:36.841Z\n"
 
 msgid "Number of organisation units"
 msgstr "Number of organisation units"
@@ -26,11 +26,21 @@ msgstr "Home"
 msgid "Export metadata"
 msgstr "Export metadata"
 
+msgid ""
+"Select metadata pieces, review dependencies, customize sharing settings and "
+"export"
+msgstr ""
+"Select metadata pieces, review dependencies, customize sharing settings and "
+"export"
+
 msgid "Metadata Hub"
 msgstr "Metadata Hub"
 
 msgid "Fake generator"
 msgstr "Fake generator"
+
+msgid "Generate fake metadata (orgUnits) for testing"
+msgstr "Generate fake metadata (orgUnits) for testing"
 
 msgid "About xData"
 msgstr "About xData"
