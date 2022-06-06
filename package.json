@@ -1,5 +1,5 @@
 {
-    "name": "x-data",
+    "name": "xData",
     "version": "1.0.0",
     "description": "",
     "license": "BSD-3-Clause",
@@ -19,8 +19,14 @@
     "dependencies": {
         "@dhis2/app-runtime": "^3.4.3",
         "@dhis2/ui": "^8.4.1",
+        "@emotion/react": "^11.9.0",
+        "@emotion/styled": "^11.8.1",
         "@eyeseetea/d2-api": "^1.12.0",
         "@faker-js/faker": "^7.1.0",
+        "@material-table/core": "^0.2.34",
+        "@mui/lab": "^5.0.0-alpha.84",
+        "@mui/material": "^5.8.2",
+        "@mui/styles": "^5.8.0",
         "@tanstack/react-location": "^3.7.4",
         "@tanstack/react-location-devtools": "^3.4.4",
         "@tanstack/react-table": "^8.0.0-beta.3",
@@ -28,7 +34,6 @@
         "dexie-react-hooks": "^1.1.1",
         "lodash": "^4.17.21",
         "react-query": "^3.39.1",
-        "styled-components": "^5.3.5",
         "worker-loader": "^3.0.8"
     }
 }

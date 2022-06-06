@@ -1,26 +1,11 @@
 // @ts-ignore
 import { MenuItem as D2MenuItem, MenuSectionHeader as D2MenuSectionHeader } from "@dhis2/ui";
-import { useNavigate } from "@tanstack/react-location";
-import styled from "styled-components";
-
-type Item = {
-    type: "item";
-    label: string;
-    icon?: React.ReactNode;
-    route: string;
-};
-
-type Group = {
-    type: "group";
-    label: string;
-    items: SidebarItem[];
-    collapsed?: boolean;
-};
-
-export type SidebarItem = Item | Group;
+import styled from "@emotion/styled";
+import { useRouter } from "../../hooks/useRouter";
+import { Page } from "../../pages";
 
 export interface SidebarProps {
-    items: SidebarItem[];
+    items: Page[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ items }) => {
@@ -33,11 +18,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ items }) => {
     );
 };
 
-const Item: React.FC<SidebarItem> = props => {
-    const navigate = useNavigate();
+const Item: React.FC<Page> = props => {
+    const { navigate } = useRouter();
     switch (props.type) {
         case "item":
-            return <MenuItem label={props.label} item={props.icon} onClick={() => navigate({ to: props.route })} />;
+            return <MenuItem label={props.label} item={props.icon} onClick={() => navigate(props.route)} />;
         case "group":
             return (
                 <>

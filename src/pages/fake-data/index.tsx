@@ -1,5 +1,6 @@
 import { useState } from "react";
-import styled from "styled-components";
+import { Page, Title } from "../../components/page/Page";
+import { Section } from "../../components/section/Section";
 import { Tabs } from "../../components/tabs/Tabs";
 import { OrgUnitsTab } from "./OrgUnits";
 
@@ -13,7 +14,7 @@ export const FakeData = () => {
     const [selectedTab, setSelectedTab] = useState("orgUnits");
 
     return (
-        <Container>
+        <Page>
             <Title>Fake data</Title>
 
             <Tabs selected={selectedTab} onChange={setSelectedTab} tabs={tabs} />
@@ -23,7 +24,7 @@ export const FakeData = () => {
                     <Content tab={tab.value} />
                 </Section>
             ))}
-        </Container>
+        </Page>
     );
 };
 
@@ -35,15 +36,3 @@ const Content: React.FC<{ tab: string }> = ({ tab }) => {
             return null;
     }
 };
-
-const Container = styled.div`
-    padding: 20px;
-`;
-
-const Title = styled.h1`
-    margin: 15px;
-`;
-
-const Section = styled.div<{ visible: boolean }>`
-    display: ${({ visible }) => (visible ? "inherit" : "none")};
-`;

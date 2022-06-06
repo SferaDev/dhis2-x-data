@@ -5,8 +5,47 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-06-01T09:33:54.091Z\n"
-"PO-Revision-Date: 2022-06-01T09:33:54.091Z\n"
+"POT-Creation-Date: 2022-06-02T15:59:09.412Z\n"
+"PO-Revision-Date: 2022-06-02T15:59:09.412Z\n"
 
-msgid "Hello"
-msgstr "Hello"
+msgid "Number of organisation units"
+msgstr "Number of organisation units"
+
+msgid "Depth level"
+msgstr "Depth level"
+
+msgid "Parent"
+msgstr "Parent"
+
+msgid "Generate"
+msgstr "Generate"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Edit metadata"
+msgstr "Edit metadata"
+
+msgid "Import metadata"
+msgstr "Import metadata"
+
+msgid "Export metadata"
+msgstr "Export metadata"
+
+msgid "Edit data"
+msgstr "Edit data"
+
+msgid "Import data"
+msgstr "Import data"
+
+msgid "Export data"
+msgstr "Export data"
+
+msgid "Fake generator"
+msgstr "Fake generator"
+
+msgid "API Playground"
+msgstr "API Playground"
+
+msgid "About xData"
+msgstr "About xData"

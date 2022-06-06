@@ -1,7 +1,7 @@
 // @ts-ignore
 import { OrganisationUnitTree, Center, CircularLoader } from "@dhis2/ui";
 import _ from "lodash";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 
 export interface OrgUnitTreeProps {
     roots: string[];

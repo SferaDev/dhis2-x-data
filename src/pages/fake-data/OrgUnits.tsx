@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Button, InputField } from "@dhis2/ui";
 import { useState } from "react";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 import { OrgUnitTree } from "../../components/org-unit-tree/OrgUnitTree";
 import { useAppContext } from "../../hooks/useAppContext";
 import i18n from "../../locales";

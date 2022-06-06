@@ -4,11 +4,12 @@ import { TableInstance } from "@tanstack/react-table";
 
 export interface TableProps<RowType extends Record<string, unknown>> {
     table: TableInstance<RowType>;
+    height?: number;
 }
 
-export const Table: React.FC<TableProps<any>> = ({ table }) => {
+export const Table: React.FC<TableProps<any>> = ({ table, height = 500 }) => {
     return (
-        <DataTable loading={false}>
+        <DataTable loading={false} scrollHeight={`${height}px`}>
             <TableHead>
                 {table.getHeaderGroups().map(headerGroup => (
                     <DataTableRow key={headerGroup.id}>

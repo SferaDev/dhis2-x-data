@@ -1,75 +1,112 @@
-// @ts-ignore
-import { Checkbox } from "@dhis2/ui";
-import { createTable, getCoreRowModel, useTableInstance } from "@tanstack/react-table";
+import styled from "@emotion/styled";
+import MaterialTable from "@material-table/core";
+import { Step, StepLabel, Stepper } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ChangeEvent } from "react";
-import { Table } from "../../components/table/Table";
-import { Database, ListItem } from "../../services/db";
-
-const metadata = createTable().setRowType<ListItem>();
-const dependencies = createTable().setRowType<ListItem>();
+import { useState } from "react";
+import { Page, Title } from "../../components/page/Page";
+import { Section } from "../../components/section/Section";
+import { useAppContext } from "../../hooks/useAppContext";
+import i18n from "../../locales";
+import { Database } from "../../services/db";
+import { generateUid } from "../../services/fake-data/uid";
 
 const db = new Database();
 
-const columns = [
-    metadata.createDisplayColumn({
-        id: "select",
-        header: ({ instance }) => (
-            <Checkbox
-                checked={instance.getIsAllRowsSelected()}
-                indeterminate={instance.getIsSomeRowsSelected()}
-                onChange={(data: { value?: string; name?: string; checked: boolean }, event: ChangeEvent) =>
-                    instance.getToggleAllRowsSelectedHandler()(event)
-                }
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                indeterminate={row.getIsSomeSelected()}
-                onChange={(data: { value?: string; name?: string; checked: boolean }, event: ChangeEvent) =>
-                    row.getToggleSelectedHandler()(event)
-                }
-            />
-        ),
-    }),
-    metadata.createDataColumn(row => row.id, {
-        id: "id",
-        cell: info => info.getValue(),
-        header: () => <span>Identifier</span>,
-    }),
-    metadata.createDataColumn(row => row.type, {
-        id: "type",
-        cell: info => info.getValue(),
-        header: () => <span>Type</span>,
-    }),
-    metadata.createDataColumn(row => row.name, {
-        id: "name",
-        cell: info => info.getValue(),
-        header: () => <span>Name</span>,
-    }),
-];
-
 export const MetadataExport = () => {
-    const friends = useLiveQuery(() => db.list.limit(100).toArray());
+    const { api } = useAppContext();
+    const [id] = useState(generateUid());
+    const [query, setQuery] = useState<{ page?: number; size?: number; search?: string }>({});
+    const [step, setStep] = useState(0);
 
-    const metadataTable = useTableInstance(metadata, {
-        data: friends ?? [],
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-    });
+    const metadataCount = useLiveQuery(() => db.list.count());
+    const metadataList = useLiveQuery(async () => {
+        const items = await db.list
+            .orderBy("type")
+            .filter(item => {
+                if (!query.search) return true;
+                return item.name.toLowerCase().includes(query.search.toLowerCase());
+            })
+            .toArray();
 
-    const dependenciesTable = useTableInstance(dependencies, {
-        data: friends ?? [],
-        columns,
-        getCoreRowModel: getCoreRowModel(),
+        return items.map(item => ({
+            ...item,
+            // @ts-ignore
+            type: api.models[item.type].schema.displayName,
+        }));
+    }, [query]);
+
+    const packageInfo = useLiveQuery(async () => {
+        const info = await db.metadataExport.filter(item => item.id === id).first();
+        const dependencies = await db.list.filter(item => info?.dependencies?.includes(item.id) ?? false).toArray();
+
+        return { ...info, dependencies };
     });
 
     return (
-        <div style={{ display: "flex", gap: 20 }}>
-            <Table table={metadataTable} />
+        <Page>
+            <Title>Metadata export</Title>
 
-            <Table table={dependenciesTable} />
-        </div>
+            <Stepper nonLinear activeStep={step} sx={{ padding: 3 }}>
+                {steps.map((label, index) => (
+                    <Step key={label} onClick={() => setStep(index)} sx={{ cursor: "pointer" }}>
+                        <StepLabel>{label}</StepLabel>
+                    </Step>
+                ))}
+            </Stepper>
+
+            <Section visible={step === 0}>
+                <Wrapper>
+                    <MaterialTable
+                        title={i18n.t("Metadata selection")}
+                        data={metadataList ?? []}
+                        totalCount={metadataCount}
+                        page={query?.page ?? 0}
+                        onPageChange={(page, size) => setQuery({ page, size })}
+                        onSearchChange={search => setQuery(query => ({ ...query, page: 0, search }))}
+                        options={{
+                            pageSize: 5,
+                            pageSizeOptions: [5, 10, 20, 50],
+                            paging: false,
+                        }}
+                        columns={[
+                            { title: "Type", field: "type", defaultGroupOrder: 0 },
+                            { title: "Identifier", field: "id" },
+                            { title: "Name", field: "name" },
+                        ]}
+                    />
+
+                    <MaterialTable
+                        title={i18n.t("Dependencies")}
+                        data={packageInfo?.dependencies ?? []}
+                        options={{
+                            search: false,
+                            paging: false,
+                        }}
+                        columns={[
+                            { title: "Identifier", field: "id" },
+                            { title: "Type", field: "type" },
+                            { title: "Name", field: "name" },
+                        ]}
+                    />
+                </Wrapper>
+            </Section>
+        </Page>
     );
 };
+
+const Wrapper = styled.div`
+    display: grid;
+    grid-template-columns: 50% 50%;
+
+    > * {
+        margin: 10px;
+    }
+`;
+
+const steps = [
+    i18n.t("Select metadata"),
+    i18n.t("Review dependencies"),
+    i18n.t("Sharing and access"),
+    i18n.t("Transform"),
+    i18n.t("Export"),
+];
