@@ -1,8 +1,11 @@
+//@ts-ignore
+import { IconDelete24 } from "@dhis2/ui";
 import styled from "@emotion/styled";
 import MaterialTable from "@material-table/core";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useState } from "react";
+import _ from "lodash";
+import { useState, useEffect } from "react";
 import { Page, Title } from "../../components/page/Page";
 import { Section } from "../../components/section/Section";
 import { useAppContext } from "../../hooks/useAppContext";
@@ -13,10 +16,12 @@ import { generateUid } from "../../services/fake-data/uid";
 const db = new Database();
 
 export const MetadataExport = () => {
-    const { api } = useAppContext();
-    const [id] = useState(generateUid());
+    const { api, worker } = useAppContext();
+    const [exportId] = useState(generateUid());
     const [query, setQuery] = useState<{ page?: number; size?: number; search?: string }>({});
+    const [dependencies, setDependencies] = useState<string[]>([]);
     const [step, setStep] = useState(0);
+    const [dependencySearch, setDependencySearch] = useState("");
 
     const metadataCount = useLiveQuery(() => db.list.count());
     const metadataList = useLiveQuery(async () => {
@@ -35,12 +40,29 @@ export const MetadataExport = () => {
         }));
     }, [query]);
 
-    const packageInfo = useLiveQuery(async () => {
-        const info = await db.metadataExport.filter(item => item.id === id).first();
-        const dependencies = await db.list.filter(item => info?.dependencies?.includes(item.id) ?? false).toArray();
+    const dependencyList = useLiveQuery(async () => {
+        const items = await db.list
+            .orderBy("type")
+            .filter(item => {
+                const isSearch = item.name.toLowerCase().includes(dependencySearch.toLowerCase());
+                return isSearch && dependencies.includes(item.id);
+            })
+            .toArray();
 
-        return { ...info, dependencies };
-    });
+        return items.map(item => ({
+            ...item,
+            // @ts-ignore
+            type: api.models[item.type].schema.displayName,
+        }));
+    }, [dependencies, dependencySearch]);
+
+    useEffect(() => {
+        worker.onmessage = event => {
+            if (event.data.action === "export-dependency-list" && event.data.projectId === exportId) {
+                setDependencies(dependencies => [...dependencies, ...event.data.dependencies]);
+            }
+        };
+    }, [worker]);
 
     return (
         <Page>
@@ -63,10 +85,22 @@ export const MetadataExport = () => {
                         page={query?.page ?? 0}
                         onPageChange={(page, size) => setQuery({ page, size })}
                         onSearchChange={search => setQuery(query => ({ ...query, page: 0, search }))}
+                        onSelectionChange={(_selection, row) => {
+                            console.log(row, _selection);
+                            if (!row) return;
+                            worker.postMessage({
+                                action: "export-dependency-gathering",
+                                projectId: exportId,
+                                selection: [row.id],
+                            });
+                        }}
                         options={{
                             pageSize: 5,
                             pageSizeOptions: [5, 10, 20, 50],
                             paging: false,
+                            selection: true,
+                            showTextRowsSelected: false,
+                            showSelectGroupCheckbox: false,
                         }}
                         columns={[
                             { title: "Type", field: "type", defaultGroupOrder: 0 },
@@ -77,15 +111,27 @@ export const MetadataExport = () => {
 
                     <MaterialTable
                         title={i18n.t("Dependencies")}
-                        data={packageInfo?.dependencies ?? []}
+                        data={dependencyList ?? []}
+                        onSearchChange={search => setDependencySearch(search)}
                         options={{
-                            search: false,
                             paging: false,
                         }}
                         columns={[
                             { title: "Identifier", field: "id" },
                             { title: "Type", field: "type" },
                             { title: "Name", field: "name" },
+                        ]}
+                        localization={{
+                            header: { actions: "" },
+                        }}
+                        actions={[
+                            {
+                                icon: () => <IconDelete24 />,
+                                onClick: (_event, row) => {
+                                    const ids = _.flatten([row]).map(item => item.id);
+                                    setDependencies(dependencies => _.difference(dependencies, ids));
+                                },
+                            },
                         ]}
                     />
                 </Wrapper>

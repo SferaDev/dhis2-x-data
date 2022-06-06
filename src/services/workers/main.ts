@@ -3,12 +3,14 @@ import { D2Api, getD2APiFromInstance, Pager } from "../../types/d2-api";
 import { timeout } from "../../utils/lang";
 import { Database } from "../db";
 import { fakeOrgUnits } from "../fake-data";
+import { isValidUid } from "../fake-data/uid";
 
 export type WorkerInputData =
     | { action: "init"; url: string }
-    | { action: "fake-data"; type: "orgUnits"; size: number; parent?: string; maxLevel: number };
+    | { action: "fake-data"; type: "orgUnits"; size: number; parent?: string; maxLevel: number }
+    | { action: "export-dependency-gathering"; projectId: string; selection: string[] };
 
-export type WorkerOutputData = { action: "output" };
+export type WorkerOutputData = { action: "export-dependency-list"; projectId: string; dependencies: string[] };
 
 const sendMessage: (message: WorkerOutputData) => void = postMessage;
 
@@ -24,6 +26,14 @@ onmessage = async (e: MessageEvent<WorkerInputData>) => {
             const orgUnits = fakeOrgUnits(e.data.size, e.data.maxLevel, e.data.parent);
             const { response } = await api.metadata.postAsync({ organisationUnits: orgUnits }).getData();
             await api.system.waitFor(response.jobType, response.id).getData();
+            break;
+        case "export-dependency-gathering":
+            const metadata = await apiExport(e.data.selection);
+
+            const fetchedItems = new Set<string>();
+            const ids = await exportDependencies(metadata, fetchedItems);
+            sendMessage({ action: "export-dependency-list", projectId: e.data.projectId, dependencies: ids });
+            break;
     }
 };
 
@@ -102,3 +112,39 @@ export const init = async () => {
         }
     }
 };
+
+function traverse<T>(obj: any, visitor: (obj: Record<string, unknown>) => T): T[] {
+    if (Array.isArray(obj)) {
+        return obj.filter(item => isObject(item)).flatMap(item => traverse(item, visitor));
+    }
+
+    if (isObject(obj)) {
+        return [visitor(obj), ...Object.keys(obj).flatMap(key => traverse(obj[key], visitor))];
+    }
+
+    return [];
+}
+
+function apiExport(ids: string[]) {
+    return api
+        .get<Record<string, unknown>>("/metadata", {
+            filter: `id:in:[${ids.join(",")}]`,
+            fields: ":owner",
+        })
+        .getData();
+}
+
+async function exportDependencies(metadata: Record<string, unknown>, fetchedItems: Set<string>): Promise<string[]> {
+    const ids = _.uniq(traverse(metadata, obj => obj.id as string));
+    const newIds = ids.filter(id => isValidUid(id) && !fetchedItems.has(id));
+    if (newIds.length === 0) return [];
+
+    newIds.forEach(id => fetchedItems.add(id));
+    const dependencies = await apiExport(newIds);
+    const dependenciesIds = await exportDependencies(dependencies, fetchedItems);
+    return _.uniq([...newIds, ...dependenciesIds]);
+}
+
+function isObject(obj: any): obj is Record<string, unknown> {
+    return obj !== null && typeof obj === "object" && !Array.isArray(obj);
+}
