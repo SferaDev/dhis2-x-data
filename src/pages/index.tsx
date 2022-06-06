@@ -4,6 +4,7 @@ import { FakeData } from "./fake-data";
 import { Home } from "./home";
 import { MetadataEdit } from "./metadata-edit/MetadataEdit";
 import { MetadataExport } from "./metadata-export/MetadataExport";
+import { PlaygroundEditor } from "./playground/Playground";
 
 type Item = {
     type: "item";
@@ -28,18 +29,8 @@ export const pages: Page[] = [
         type: "group",
         label: "Metadata",
         items: [
-            { type: "item", label: i18n.t("Edit metadata"), route: "/metadata/edit", element: <MetadataEdit /> },
-            { type: "item", label: i18n.t("Import metadata"), route: "/metadata/import" },
             { type: "item", label: i18n.t("Export metadata"), route: "/metadata/export", element: <MetadataExport /> },
-        ],
-    },
-    {
-        type: "group",
-        label: "Data",
-        items: [
-            { type: "item", label: i18n.t("Edit data"), route: "/data/edit" },
-            { type: "item", label: i18n.t("Import data"), route: "/data/import" },
-            { type: "item", label: i18n.t("Export data"), route: "/data/export" },
+            { type: "item", label: i18n.t("Metadata Hub"), route: "/metadata/hub" },
         ],
     },
     {
@@ -53,7 +44,6 @@ export const pages: Page[] = [
                 route: "/utils/fake",
                 element: <FakeData />,
             },
-            { type: "item", label: i18n.t("API Playground"), icon: "home", route: "/utils/playground" },
         ],
     },
     {

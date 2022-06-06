@@ -101,6 +101,7 @@ export const MetadataExport = () => {
                             selection: true,
                             showTextRowsSelected: false,
                             showSelectGroupCheckbox: false,
+                            maxBodyHeight: "calc(100vh - 310px)",
                         }}
                         columns={[
                             { title: "Type", field: "type", defaultGroupOrder: 0 },
@@ -149,10 +150,4 @@ const Wrapper = styled.div`
     }
 `;
 
-const steps = [
-    i18n.t("Select metadata"),
-    i18n.t("Review dependencies"),
-    i18n.t("Sharing and access"),
-    i18n.t("Transform"),
-    i18n.t("Export"),
-];
+const steps = [i18n.t("Select metadata"), i18n.t("Sharing and access"), i18n.t("Export")];

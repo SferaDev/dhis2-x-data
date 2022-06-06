@@ -6,8 +6,8 @@ import { OrgUnitsTab } from "./OrgUnits";
 
 const tabs = [
     { label: "Organisation Units", value: "orgUnits" },
-    { label: "Data Values", value: "dataValues" },
-    { label: "Events", value: "events" },
+    // { label: "Data Values", value: "dataValues" },
+    // { label: "Events", value: "events" },
 ];
 
 export const FakeData = () => {

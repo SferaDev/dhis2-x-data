@@ -1,0 +1,50 @@
+{
+  "formatVersion": "1.0",
+  "tables": [
+    {
+      "name": "metadata",
+      "columns": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "downloads",
+          "type": "int"
+        },
+        {
+          "name": "owner",
+          "type": "link",
+          "link": {
+            "table": "users"
+          }
+        },
+        {
+          "name": "data",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "columns": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "name": "instance",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -125,13 +125,22 @@ function traverse<T>(obj: any, visitor: (obj: Record<string, unknown>) => T): T[
     return [];
 }
 
-function apiExport(ids: string[]) {
-    return api
-        .get<Record<string, unknown>>("/metadata", {
-            filter: `id:in:[${ids.join(",")}]`,
-            fields: ":owner",
-        })
-        .getData();
+async function apiExport(ids: string[]) {
+    const chunks = _.chunk(ids, 200);
+    const data = await Promise.all(
+        chunks.map(chunk =>
+            api
+                .get<Record<string, unknown>>("/metadata", {
+                    filter: `id:in:[${chunk.join(",")}]`,
+                    fields: ":owner",
+                    defaults: "EXCLUDE",
+                })
+                .getData()
+        )
+    );
+
+    const mergeCustomizer = (obj: any, src: unknown) => (_.isArray(obj) ? obj.concat(src) : src);
+    return _.mergeWith({}, ...data, mergeCustomizer);
 }
 
 async function exportDependencies(metadata: Record<string, unknown>, fetchedItems: Set<string>): Promise<string[]> {

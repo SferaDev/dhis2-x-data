@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import Worker from "worker-loader!../services/workers/main";
-import { WorkerInputData, WorkerOutputData } from "../services/workers/main";
+import type { WorkerInputData, WorkerOutputData } from "../services/workers/main";
 import { D2Api, getD2APiFromInstance } from "../types/d2-api";
 
 export interface AppContextState {

@@ -1,0 +1,8 @@
+.feedbackButtonArrow {
+    opacity: 0;
+    transition: 0.3s ease opacity;
+}
+
+.feedbackButtonHint:hover ~ .feedbackButtonArrow {
+    opacity: 1;
+}
