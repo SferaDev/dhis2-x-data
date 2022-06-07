@@ -20,7 +20,8 @@ export type WorkerOutputData =
           action: "export-build-result";
           projectId: string;
           result: MetadataPayload;
-      };
+      }
+    | { action: "loading"; loading: boolean };
 
 const sendMessage: (message: WorkerOutputData) => void = postMessage;
 
@@ -41,15 +42,19 @@ onmessage = async (e: MessageEvent<WorkerInputData>) => {
             await api.system.waitFor(response.jobType, response.id).getData();
             break;
         case "export-dependency-gathering":
+            sendMessage({ action: "loading", loading: true });
             const metadata = await metadataRepo.fetchMetadataWithDependencies(e.data.selection).toPromise();
             const ids = _.values(metadata)
                 .flat()
                 .map(m => m.id);
             sendMessage({ action: "export-dependency-list", projectId: e.data.projectId, dependencies: ids });
+            sendMessage({ action: "loading", loading: false });
             break;
         case "export-build":
+            sendMessage({ action: "loading", loading: true });
             const result = await updater.execute(e.data.builder).toPromise();
             sendMessage({ action: "export-build-result", projectId: e.data.projectId, result });
+            sendMessage({ action: "loading", loading: false });
             break;
     }
 };

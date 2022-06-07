@@ -1,4 +1,5 @@
 //@ts-ignore
+import { Cover, Center, CircularLoader } from "@dhis2/ui";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import _ from "lodash";
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
@@ -11,7 +12,6 @@ import { MetadataPayload } from "../../services/entities/MetadataItem";
 import { generateUid } from "../../services/fake-data/uid";
 import { ExportStep } from "./steps/ExportStep";
 import { MetadataSelectionStep } from "./steps/MetadataSelectionStep";
-import { SharingStep } from "./steps/SharingStep";
 
 export interface MetadataExportState {
     exportId: string;
@@ -26,6 +26,7 @@ export const MetadataExport = () => {
     const [exportId] = useState(generateUid());
     const [step, setStep] = useState(0);
     const [output, setOutput] = useState<MetadataPayload>();
+    const [loading, setLoading] = useState(false);
     const [builder, updateBuilder] = useState<ExportState>({
         baseElements: [],
         dependencies: [],
@@ -35,7 +36,9 @@ export const MetadataExport = () => {
 
     useEffect(() => {
         worker.onmessage = event => {
-            if (event.data.action === "export-dependency-list" && event.data.projectId === exportId) {
+            if (event.data.action === "loading") {
+                setLoading(event.data.loading);
+            } else if (event.data.action === "export-dependency-list" && event.data.projectId === exportId) {
                 updateBuilder(builder => ({
                     ...builder,
                     // @ts-ignore
@@ -49,6 +52,14 @@ export const MetadataExport = () => {
 
     return (
         <Page>
+            {loading && (
+                <Cover translucent>
+                    <Center>
+                        <CircularLoader large />
+                    </Center>
+                </Cover>
+            )}
+
             <Title>Metadata export</Title>
 
             <Stepper nonLinear activeStep={step} sx={{ padding: 3 }}>
@@ -69,14 +80,10 @@ export const MetadataExport = () => {
             </Section>
 
             <Section visible={step === 1}>
-                <SharingStep exportId={exportId} builder={builder} updateBuilder={updateBuilder} output={output} />
-            </Section>
-
-            <Section visible={step === 2}>
                 <ExportStep exportId={exportId} builder={builder} updateBuilder={updateBuilder} output={output} />
             </Section>
         </Page>
     );
 };
 
-const steps = [i18n.t("Select metadata"), i18n.t("Sharing and access"), i18n.t("Export")];
+const steps = [i18n.t("Select metadata"), i18n.t("Export")];

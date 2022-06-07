@@ -68,13 +68,16 @@ export const MetadataSelectionStep: React.FC<MetadataExportState> = React.memo(
                     onPageChange={(page, size) => setQuery({ page, size })}
                     onSearchChange={search => setQuery(query => ({ ...query, page: 0, search }))}
                     onSelectionChange={(selection, row) => {
-                        updateBuilder(builder => ({ ...builder, baseElements: selection.map(item => item.id) }));
-                        if (!row) return;
-                        worker.postMessage({
-                            action: "export-dependency-gathering",
-                            projectId: exportId,
-                            selection: [row.id],
-                        });
+                        (() => {
+                            updateBuilder(builder => ({ ...builder, baseElements: selection.map(item => item.id) }));
+                            if (!row) return;
+
+                            worker.postMessage({
+                                action: "export-dependency-gathering",
+                                projectId: exportId,
+                                selection: [row.id],
+                            });
+                        })();
                     }}
                     options={{
                         pageSize: 5,

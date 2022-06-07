@@ -10,10 +10,9 @@ export class ApplySharings {
 
     public execute(update: ExportState): FutureData<MetadataPayload> {
         const { baseElements, dependencies, sharings, replaceExistingSharings } = update;
-        return this.metadataRepository
-            .fetchMetadata([...baseElements, ...dependencies])
-            .map(payload => this.cleanPayload(payload, []))
-            .map(payload => this.sharePayload(payload, sharings, replaceExistingSharings));
+        return this.metadataRepository.fetchMetadata([...baseElements, ...dependencies]);
+        //.map(payload => this.cleanPayload(payload, []))
+        //.map(payload => this.sharePayload(payload, sharings, replaceExistingSharings));
     }
 
     private cleanPayload(
@@ -28,11 +27,15 @@ export class ApplySharings {
     }
 
     private sharePayload(payload: MetadataPayload, sharings: SharedObject, replace: boolean): MetadataPayload {
-        return _.mapValues(payload, (items, model) =>
+        console.log("Sharing payload", payload);
+        const foo = _.mapValues(payload, (items, model) =>
             items
                 .map(item => this.updateSharingSettings(item, sharings, replace))
                 .map(item => this.assertValidSharingSettings(model, item))
         );
+
+        console.log("Shared payload", foo);
+        return foo;
     }
 
     private updateSharingSettings(
@@ -40,19 +43,31 @@ export class ApplySharings {
         sharings: SharedObject,
         replace: boolean
     ): MetadataItem {
-        return {
-            ...item,
-            publicAccess: sharings.publicAccess,
-            userAccesses: replace
-                ? sharings.userAccesses
-                : joinSharingSettings(sharings.userAccesses, item.userAccesses),
-            userGroupAccesses: replace
-                ? sharings.userGroupAccesses
-                : joinSharingSettings(sharings.userGroupAccesses, item.userGroupAccesses),
-        };
+        const userAccesses = replace
+            ? sharings.userAccesses
+            : joinSharingSettings(sharings.userAccesses, item.userAccesses);
+        const userGroupAccesses = replace
+            ? sharings.userGroupAccesses
+            : joinSharingSettings(sharings.userGroupAccesses, item.userGroupAccesses);
+
+        if (sharing !== undefined) {
+            return {
+                ...item,
+                sharing: {
+                    ...item.sharing,
+                    public: sharings.publicAccess,
+                    userGroups: _.fromPairs(userAccesses.map(item => [item.id, { id: item.id, access: item.access }])),
+                    users: _.fromPairs(userGroupAccesses.map(item => [item.id, { id: item.id, access: item.access }])),
+                },
+            };
+        }
+
+        return { ...item, publicAccess: sharings.publicAccess, userAccesses, userGroupAccesses };
     }
 
     private assertValidSharingSettings(model: string, item: MetadataItem): MetadataItem {
+        if (item.sharing !== undefined) return item;
+
         return {
             ...item,
             publicAccess: this.assertDataAccess(model, item.publicAccess),
