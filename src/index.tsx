@@ -35,7 +35,9 @@ const Outlet = () => {
     return (
         <>
             {routes.map(route => (
-                <Section visible={route.path === path}>{route.element}</Section>
+                <Section key={route.path} visible={route.path === path}>
+                    {route.element}
+                </Section>
             ))}
         </>
     );

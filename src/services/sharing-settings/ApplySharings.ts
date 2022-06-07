@@ -2,17 +2,17 @@ import _ from "lodash";
 import { FutureData } from "../entities/Futures";
 import { MetadataItem, MetadataPayload } from "../entities/MetadataItem";
 import { buildAccessString, getAccessFromString, SharedObject, SharingSetting } from "../entities/SharedObject";
-import { SharingUpdate } from "../entities/SharingUpdate";
+import { ExportState } from "../entities/ExportState";
 import { MetadataD2ApiRepository } from "../metadata/MetadataRepository";
 
 export class ApplySharings {
     constructor(private metadataRepository: MetadataD2ApiRepository) {}
 
-    public execute(update: SharingUpdate): FutureData<MetadataPayload> {
-        const { baseElements, excludedDependencies, sharings, replaceExistingSharings } = update;
+    public execute(update: ExportState): FutureData<MetadataPayload> {
+        const { baseElements, dependencies, sharings, replaceExistingSharings } = update;
         return this.metadataRepository
-            .fetchMetadata(baseElements)
-            .map(payload => this.cleanPayload(payload, excludedDependencies))
+            .fetchMetadata([...baseElements, ...dependencies])
+            .map(payload => this.cleanPayload(payload, []))
             .map(payload => this.sharePayload(payload, sharings, replaceExistingSharings));
     }
 
@@ -36,7 +36,7 @@ export class ApplySharings {
     }
 
     private updateSharingSettings(
-        { sharing, createdBy, created, lastUpdated, ...item }: MetadataItem,
+        { sharing, createdBy, created, lastUpdated, lastUpdatedBy, ...item }: MetadataItem,
         sharings: SharedObject,
         replace: boolean
     ): MetadataItem {

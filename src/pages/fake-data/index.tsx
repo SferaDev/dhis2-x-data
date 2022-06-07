@@ -20,7 +20,7 @@ export const FakeData = () => {
             <Tabs selected={selectedTab} onChange={setSelectedTab} tabs={tabs} />
 
             {tabs.map(tab => (
-                <Section visible={tab.value === selectedTab}>
+                <Section key={`tab-${tab.label}`} visible={tab.value === selectedTab}>
                     <Content tab={tab.value} />
                 </Section>
             ))}

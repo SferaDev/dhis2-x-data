@@ -2,10 +2,9 @@ import _ from "lodash";
 import { D2Api, getD2APiFromInstance, Pager } from "../../types/d2-api";
 import { timeout } from "../../utils/lang";
 import { Database } from "../db";
+import { ExportState } from "../entities/ExportState";
 import { MetadataPayload } from "../entities/MetadataItem";
-import { SharingUpdate } from "../entities/SharingUpdate";
 import { fakeOrgUnits } from "../fake-data";
-import { isValidUid } from "../fake-data/uid";
 import { MetadataD2ApiRepository } from "../metadata/MetadataRepository";
 import { ApplySharings } from "../sharing-settings/ApplySharings";
 
@@ -13,7 +12,7 @@ export type WorkerInputData =
     | { action: "init"; url: string }
     | { action: "fake-data"; type: "orgUnits"; size: number; parent?: string; maxLevel: number }
     | { action: "export-dependency-gathering"; projectId: string; selection: string[] }
-    | { action: "export-build"; projectId: string; builder: SharingUpdate };
+    | { action: "export-build"; projectId: string; builder: ExportState };
 
 export type WorkerOutputData =
     | { action: "export-dependency-list"; projectId: string; dependencies: string[] }
@@ -105,7 +104,12 @@ export const fetchApi = async (
 export const init = async () => {
     const models = _.values(api.models).filter(model => model.schema.metadata);
 
+    const count = await db.list.count();
+    console.log("Metadata", `Found ${count} items in the database`);
+
     for (const model of models) {
+        const items = [];
+
         let page = 1;
         let pageCount = 1;
 
@@ -122,7 +126,20 @@ export const init = async () => {
                 type: model.schema.collectionName,
             }));
 
-            db.list.bulkAdd(pageItems);
+            if (count === 0) {
+                await db.list.bulkAdd(pageItems);
+            } else {
+                items.push(...pageItems);
+            }
+        }
+
+        if (count > 0) {
+            const oldItems = await db.list.toArray();
+            const differentItems = _.differenceWith(items, oldItems, _.isEqual);
+            if (differentItems.length > 0) {
+                console.log("Metadata", "Adding new items", differentItems.length);
+                await db.list.bulkPut(differentItems);
+            }
         }
     }
 };

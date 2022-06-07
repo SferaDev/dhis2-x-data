@@ -1,8 +1,8 @@
 import { SharedObject } from "./SharedObject";
 
-export interface SharingUpdate {
+export interface ExportState {
     baseElements: string[];
-    excludedDependencies: string[];
+    dependencies: string[];
     sharings: SharedObject;
     replaceExistingSharings: boolean;
 }
